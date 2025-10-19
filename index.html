@@ -15,7 +15,8 @@
   button { padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
   button:hover { opacity: 0.9; }
 
-  /* Logout button */
+  /* Buttons colors */
+  #loginBtn { background: green; color: white; }
   #logoutBtn { background: red; color: white; float: right; }
 
   /* Table styling */
@@ -40,6 +41,7 @@
   .userName { font-weight: bold; color: green; }
   .userCredits { color: red; font-weight: bold; }
 
+  .hidden { display: none; }
 </style>
 </head>
 <body>
@@ -52,7 +54,7 @@
   <input type="text" id="loginId">
   <label>Password:</label>
   <input type="password" id="loginPassword">
-  <button onclick="login()">Login</button>
+  <button id="loginBtn" onclick="login()">Login</button>
   <p id="loginMsg"></p>
 </div>
 
@@ -133,12 +135,13 @@ async function login() {
 }
 
 // Logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
+function logout() {
   currentUser = null;
   document.getElementById("loginDiv").classList.remove("hidden");
   document.getElementById("eventsDiv").classList.add("hidden");
   document.getElementById("loginMsg").innerText = "";
-});
+}
+document.getElementById("logoutBtn").addEventListener("click", logout);
 
 // Load events
 async function loadEvents() {
