@@ -36,7 +36,7 @@
   #editModalContent { background: #fff; width: 400px; margin: 80px auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; }
 
   #editMsg { color: green; margin-top: 8px; }
-  #loginMsg { color: red; margin-top: 8px; }
+  #loginMsg { color: green; font-weight: bold; margin-top: 8px; }
   .userInfo { margin-bottom: 15px; font-size: 16px; overflow: hidden; }
   .userName { font-weight: bold; color: green; }
   .userCredits { color: red; font-weight: bold; }
@@ -101,6 +101,14 @@
 const WORKER_URL = "https://fancy-feather-b1ad.ev-dmaundu.workers.dev/";
 let currentUser = null;
 
+// Show wait message
+function showWaitMessage(elementId, msg = "Wait please...") {
+  const el = document.getElementById(elementId);
+  el.style.color = "green";
+  el.style.fontWeight = "bold";
+  el.innerText = msg;
+}
+
 // Login function
 async function login() {
   const id = document.getElementById("loginId").value.trim();
@@ -109,7 +117,8 @@ async function login() {
 
   if (!id || !pw) { msg.innerText = "Enter National ID and Password"; return; }
 
-  msg.innerText = "Wait...";
+  showWaitMessage("loginMsg");
+
   try {
     const res = await fetch(WORKER_URL, {
       method: "POST",
@@ -126,6 +135,9 @@ async function login() {
       document.getElementById("userCredits").textContent = data.user.credits;
       document.getElementById("loginDiv").classList.add("hidden");
       document.getElementById("eventsDiv").classList.remove("hidden");
+      // Clear login fields
+      document.getElementById("loginId").value = "";
+      document.getElementById("loginPassword").value = "";
       msg.innerText = "";
       loadEvents();
     } else {
@@ -146,6 +158,7 @@ document.getElementById("logoutBtn").addEventListener("click", logout);
 // Load events
 async function loadEvents() {
   if (!currentUser) return;
+  showWaitMessage("loginMsg");
   try {
     const res = await fetch(WORKER_URL, {
       method: "POST",
@@ -156,6 +169,7 @@ async function loadEvents() {
     try { data = await res.json(); } catch { data = { success: false, message: "Invalid server response" }; }
 
     if (data.success) {
+      document.getElementById("loginMsg").innerText = "";
       const tbody = document.querySelector("#eventsTable tbody");
       tbody.innerHTML = "";
       data.events.forEach(ev => {
@@ -198,6 +212,7 @@ function closeModal() { document.getElementById("editModal").style.display = "no
 
 // Save edit
 async function saveEdit() {
+  showWaitMessage("editMsg");
   const eventData = {
     action: "updateEvent",
     nationalId: currentUser.nationalId,
@@ -225,6 +240,7 @@ async function saveEdit() {
 // Delete event
 async function deleteEvent(rowIndex) {
   if (!confirm("Are you sure you want to delete this event?")) return;
+  showWaitMessage("loginMsg");
   try {
     const res = await fetch(WORKER_URL, {
       method: "POST",
