@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>View Events</title>
 <style>
-  body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
   h2 { text-align: center; margin-top: 30px; color: #333; }
 
   /* Card-style containers */
-  #loginDiv, #eventsDiv { max-width: 700px; margin: 40px auto; padding: 25px; background: #fff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  #loginDiv, #eventsDiv { max-width: 750px; margin: 40px auto; padding: 25px; background: #fff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 
   input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
   button { padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
@@ -20,21 +20,26 @@
 
   /* Table styling */
   #eventsTable { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-  #eventsTable th, #eventsTable td { padding: 10px; text-align: left; }
+  #eventsTable th, #eventsTable td { padding: 10px; text-align: left; border: 1px solid #ccc; }
   #eventsTable th { background: #007BFF; color: #fff; }
   #eventsTable tbody tr:nth-child(even) { background: #f9f9f9; }
   #eventsTable tbody tr:nth-child(odd) { background: #e6f2ff; }
   #eventsTable tbody tr:hover { background: #d1e7ff; }
 
+  /* Action buttons */
+  .editBtn { background: green; color: white; }
+  .deleteBtn { background: red; color: white; }
+
   /* Modal styling */
-  #editModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-  #editModalContent { background: #fff; width: 400px; margin: 80px auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  #editModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; }
+  #editModalContent { background: #fff; width: 400px; margin: 80px auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; }
 
   #editMsg { color: green; margin-top: 8px; }
   #loginMsg { color: red; margin-top: 8px; }
-  .userInfo { margin-bottom: 15px; font-size: 16px; }
+  .userInfo { margin-bottom: 15px; font-size: 16px; overflow: hidden; }
   .userName { font-weight: bold; color: green; }
   .userCredits { color: red; font-weight: bold; }
+
 </style>
 </head>
 <body>
@@ -55,7 +60,7 @@
 <div id="eventsDiv" class="hidden">
   <div class="userInfo">
     Welcome <span class="userName" id="userName"></span> | Credits: <span class="userCredits" id="userCredits"></span>
-    <button id="logoutBtn" onclick="logout()">Logout</button>
+    <button id="logoutBtn">Logout</button>
   </div>
   <table id="eventsTable">
     <thead>
@@ -84,7 +89,7 @@
     <input type="date" id="editDate">
     <label>Venue:</label>
     <input type="text" id="editVenue">
-    <button onclick="saveEdit()">Save</button>
+    <button onclick="saveEdit()" class="editBtn">Save</button>
     <button onclick="closeModal()">Cancel</button>
     <p id="editMsg"></p>
   </div>
@@ -94,6 +99,7 @@
 const WORKER_URL = "https://fancy-feather-b1ad.ev-dmaundu.workers.dev/";
 let currentUser = null;
 
+// Login function
 async function login() {
   const id = document.getElementById("loginId").value.trim();
   const pw = document.getElementById("loginPassword").value.trim();
@@ -123,18 +129,18 @@ async function login() {
     } else {
       msg.innerText = data.message || "Login failed";
     }
-  } catch(err) {
-    msg.innerText = "Error: " + err.toString();
-  }
+  } catch(err) { msg.innerText = "Error: " + err.toString(); }
 }
 
-function logout() {
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", () => {
   currentUser = null;
   document.getElementById("loginDiv").classList.remove("hidden");
   document.getElementById("eventsDiv").classList.add("hidden");
   document.getElementById("loginMsg").innerText = "";
-}
+});
 
+// Load events
 async function loadEvents() {
   if (!currentUser) return;
   try {
@@ -157,8 +163,8 @@ async function loadEvents() {
           <td>${ev.eventDate}</td>
           <td>${ev.venue}</td>
           <td>
-            <button onclick="openEdit(${ev.rowIndex}, '${ev.title}', '${ev.description}', '${ev.eventDate}', '${ev.venue}')">Edit</button>
-            <button onclick="deleteEvent(${ev.rowIndex})">Delete</button>
+            <button class="editBtn" onclick="openEdit(${ev.rowIndex}, '${ev.title}', '${ev.description}', '${ev.eventDate}', '${ev.venue}')">Edit</button>
+            <button class="deleteBtn" onclick="deleteEvent(${ev.rowIndex})">Delete</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -167,6 +173,7 @@ async function loadEvents() {
   } catch(err) { alert("Error: " + err.toString()); }
 }
 
+// Date conversion for edit input
 function toDateInputValue(ddmmyyyy) {
   if (!ddmmyyyy) return "";
   const parts = ddmmyyyy.split("/");
@@ -174,6 +181,7 @@ function toDateInputValue(ddmmyyyy) {
   return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
 }
 
+// Edit modal
 function openEdit(rowIndex, title, description, date, venue) {
   document.getElementById("editRowIndex").value = rowIndex;
   document.getElementById("editTitle").value = title;
@@ -183,9 +191,9 @@ function openEdit(rowIndex, title, description, date, venue) {
   document.getElementById("editMsg").innerText = "";
   document.getElementById("editModal").style.display = "block";
 }
-
 function closeModal() { document.getElementById("editModal").style.display = "none"; }
 
+// Save edit
 async function saveEdit() {
   const eventData = {
     action: "updateEvent",
@@ -211,6 +219,7 @@ async function saveEdit() {
   } catch(err) { document.getElementById("editMsg").innerText = "Error: " + err.toString(); }
 }
 
+// Delete event
 async function deleteEvent(rowIndex) {
   if (!confirm("Are you sure you want to delete this event?")) return;
   try {
@@ -221,6 +230,7 @@ async function deleteEvent(rowIndex) {
     });
     let data;
     try { data = await res.json(); } catch { data = { success: false, message: "Invalid server response" }; }
+
     alert(data.message || "");
     if (data.success) loadEvents();
   } catch(err) { alert("Error: " + err.toString()); }
