@@ -27,6 +27,13 @@
   #eventsTable tbody tr:nth-child(odd) { background: #e6f2ff; }
   #eventsTable tbody tr:hover { background: #d1e7ff; }
 
+  /* Enable horizontal scroll for small screens */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
   /* Action buttons */
   .editBtn { background: green; color: white; }
   .deleteBtn { background: red; color: white; }
@@ -64,6 +71,7 @@
     Welcome <span class="userName" id="userName"></span> | Credits: <span class="userCredits" id="userCredits"></span>
     <button id="logoutBtn">Logout</button>
   </div>
+<div class="table-container">
   <table id="eventsTable">
     <thead>
       <tr>
@@ -77,6 +85,7 @@
     <tbody></tbody>
   </table>
 </div>
+
 
 <!-- EDIT MODAL -->
 <div id="editModal">
